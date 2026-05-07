@@ -35,9 +35,18 @@ jobs:
       - name: 🏗️ Build APK and Wait
         id: build
         run: |
-          # 使用 eas build --wait 模式，这样 GitHub Actions 会等待构建完成
-          # 并通过 --output 指定下载路径
-          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --output=./mirofish.apk
+          # 触发构建并等待完成，获取构建 ID
+          # 注意：--output 仅支持本地构建，云端构建需要先获取 URL 再下载
+          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📥 Download APK
+        run: |
+          # 获取最新的构建下载链接并下载
+          # 使用 eas build:list 获取最新的成功构建
+          BUILD_URL=$(npx eas-cli@latest build:list --platform android --status finished --limit 1 --json | jq -r '.[0].artifacts.buildUrl')
+          curl -L $BUILD_URL -o ./mirofish.apk
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
