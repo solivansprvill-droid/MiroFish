@@ -1,4 +1,4 @@
-name: EAS Workflow Build
+name: Build Android APK
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  run_eas_workflow:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
@@ -32,7 +32,18 @@ jobs:
       - name: 📚 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🏗️ Run EAS Workflow
-        run: npx eas-cli@latest workflow:run .eas/workflows/create-production-builds.yml --non-interactive
+      - name: 🏗️ Build APK
+        run: |
+          # 使用 eas build 命令并开启 --wait 以等待构建完成
+          # --local 模式在 CI 环境中通常不可行，因为需要 Android SDK 环境
+          # 我们使用云端构建并下载产物
+          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --output=./mirofish.apk
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📤 Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirofish-android-apk
+          path: ./mirofish.apk
+          if-no-files-found: error
