@@ -43,7 +43,7 @@ jobs:
 
       - name: 📤 Upload APK artifact
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: MiroFish-APK
           path: |
