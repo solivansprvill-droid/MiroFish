@@ -32,7 +32,18 @@ jobs:
       - name: 📚 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🏗️ Run EAS Workflow
-        run: npx eas-cli@latest workflow:run .eas/workflows/create-production-builds.yml --non-interactive
+      - name: 🏗️ Build APK and Wait
+        id: build
+        run: |
+          # 使用 eas build --wait 模式，这样 GitHub Actions 会等待构建完成
+          # 并通过 --output 指定下载路径
+          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --output=./mirofish.apk
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📤 Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirofish-android-apk
+          path: ./mirofish.apk
+          if-no-files-found: error
